@@ -16,18 +16,6 @@ class AdvertisementViewSet(ModelViewSet):
     #   сериализаторов и фильтров
 
     queryset = Advertisement.objects.all()
-
-    def list(self, request):
-        if request.auth is None:
-            queryset = Advertisement.objects.exclude(status='DRAFT')
-        else:
-            all_adv_without_draft = Advertisement.objects.exclude(status='DRAFT')
-            draft_adv_for_auth_user = Advertisement.objects.filter(creator__username=request.user.username, status='DRAFT')
-            queryset = all_adv_without_draft | draft_adv_for_auth_user
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
     serializer_class = AdvertisementSerializer
     permission_classes = [IsAuthenticated]
 

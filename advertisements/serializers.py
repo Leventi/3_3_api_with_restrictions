@@ -42,13 +42,15 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         """Метод для валидации. Вызывается при создании и обновлении."""
 
         # TODO: добавьте требуемую валидацию
-
-        adv_count = Advertisement.objects.filter(creator__username=self.context['request'].user).filter(status='OPEN').count()
-        MAX_ADV = 4
-
-        if adv_count > MAX_ADV:
-            raise ValidationError(f'У вас больше {MAX_ADV} активных объявлений')
-
-        if self.instance is None or self.context['request'].user.is_superuser is True or self.context['request'].user == self.instance.creator:
+        if self.context['request'].user.is_superuser is True:
             return data
-        raise ValidationError('Ошибка доступа')
+
+        if self.instance is None or (self.context['request'].user == self.instance.creator and self.initial_data['status'] == 'OPEN'):
+            adv_count = Advertisement.objects.filter(creator__username=self.context['request'].user).filter(
+                status='OPEN').count()
+            MAX_ADV = 4
+
+            if adv_count >= MAX_ADV:
+                raise ValidationError(f'У вас больше {MAX_ADV} активных объявлений')
+        return data
+
